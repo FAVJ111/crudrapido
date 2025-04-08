@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.json.JSONObject;
@@ -31,22 +32,25 @@ public class JwtService {
 
     private static final String SECRET_KEY="586E327235753872F4428472B4B6250655368566B59703373367397924";
 
-    public String getToken(UserDetails user) {
+    public String getToken(User user) {
         return getToken(new HashMap<>(), user);
     }
 
-    private String getToken(Map<String, Object> extraClaims, UserDetails user) {
+    private String getToken(Map<String, Object> extraClaims, User user) {
         return Jwts
         .builder()
-        .setClaims(extraClaims)
-        .setSubject(user.getUsername())
-        .setIssuedAt(new Date(System.currentTimeMillis()))
-        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
-        .signWith(getKey(), SignatureAlgorithm.HS256)
+        .claims(extraClaims)
+        .claim("userId", user.getId())
+        .claim(("firstName"), user.getFirstname())
+        .claim("lastName", user.getLastname())
+        .subject(user.getUsername())
+        .issuedAt(new Date(System.currentTimeMillis()))
+        .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+        .signWith(getKey())
         .compact();
     }
 
-    private Key getKey() {
+    private SecretKey getKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
         
@@ -63,11 +67,11 @@ public class JwtService {
 
     private Claims getAllClaims(String token){
         return Jwts
-        .parserBuilder()
-        .setSigningKey(getKey())
+        .parser()
+        .verifyWith(getKey())
         .build()
-        .parseClaimsJws(token)
-        .getBody();
+        .parseSignedClaims(token)
+        .getPayload();
     }
 
     public <T> T getClaim(String token, Function<Claims, T> claimsResolver){
