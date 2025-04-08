@@ -1,21 +1,32 @@
 package com.example.crudrapido.config;
 
 import com.example.crudrapido.config.JwtService;
-import com.example.crudrapido.service.LoginRequest;
+import com.example.crudrapido.config.LoginRequest;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private JwtService jwtService;
+    private final AuthService authService;
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-        String token = jwtService.generateToken(loginRequest.getUsername());
-        return ResponseEntity.ok(token);
+    @PostMapping(value = "login")
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
+
+    @PostMapping(value = "register")
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authService.register(request));
+    }
+    
 }
