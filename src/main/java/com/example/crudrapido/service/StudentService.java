@@ -10,6 +10,8 @@ import com.example.crudrapido.entity.Parametrizacion;
 import com.example.crudrapido.entity.Student;
 import com.example.crudrapido.exception.CustomValidationException;
 import com.example.crudrapido.exception.EmailAlreadyExistsException;
+import com.example.crudrapido.exception.InvalidEmailFormatException;
+import com.example.crudrapido.exception.InvalidNameException;
 import com.example.crudrapido.repository.StudentRepository;
 
 @Service
@@ -25,13 +27,13 @@ public class StudentService {
         // Expresión regular para el formato de correo
         String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
         if (!email.matches(emailRegex)) {
-            throw new IllegalArgumentException("Invalid email format");
+           throw new InvalidEmailFormatException("Invalid email format: " + email);
         }
     }
 
     private void validateName(String name, String fieldName) {
         if (name == null || name.trim().isEmpty()) {
-            throw new CustomValidationException(List.of(fieldName + " is required"));
+            throw new InvalidNameException(fieldName + " is required");
         }
     }
 
