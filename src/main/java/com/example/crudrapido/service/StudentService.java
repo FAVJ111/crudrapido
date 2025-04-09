@@ -12,6 +12,7 @@ import com.example.crudrapido.exception.CustomValidationException;
 import com.example.crudrapido.exception.EmailAlreadyExistsException;
 import com.example.crudrapido.exception.InvalidEmailFormatException;
 import com.example.crudrapido.exception.InvalidNameException;
+import com.example.crudrapido.exception.StudentLimitExceededException;
 import com.example.crudrapido.repository.StudentRepository;
 
 @Service
@@ -53,6 +54,11 @@ public class StudentService {
         validateName(student.getFirstName(), "First name");
         validateName(student.getLastName(), "Last name");
 
+        // Verificar si el correo electrónico ya está registrado
+        if (existsByEmail(student.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already exists: " + student.getEmail());
+        }
+
         // Obtener el número máximo de estudiantes permitido desde la base de datos
         Optional<Parametrizacion> maxEstudiantesParam = parametrizacionService.getByClave("MAX_ESTUDIANTES");
 
@@ -61,7 +67,7 @@ public class StudentService {
 
             long totalEstudiantes = studentRepository.count();
             if (totalEstudiantes >= maxEstudiantes) {
-                throw new RuntimeException("No se pueden registrar más estudiantes, límite alcanzado.");
+                throw new StudentLimitExceededException("No se pueden registrar más estudiantes, límite alcanzado.");
             }
         }
 

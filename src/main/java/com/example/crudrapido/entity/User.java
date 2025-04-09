@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "app_user", uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
+@Table(name = "app_user", uniqueConstraints = { @UniqueConstraint(columnNames = { "username" }) })
 public class User implements UserDetails {
     @Id
     @GeneratedValue
@@ -39,10 +39,9 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     Role role;
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-       return List.of(new SimpleGrantedAuthority((role.name())));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
