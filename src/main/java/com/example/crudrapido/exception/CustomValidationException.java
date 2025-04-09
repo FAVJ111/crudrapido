@@ -13,5 +13,10 @@ public class CustomValidationException extends RuntimeException {
     public List<String> getErrors() {
         return errors;
     }
-}
 
+    // Agregar un mensaje de error para ser usado en los manejadores
+    @Override
+    public String getMessage() {
+        return String.join(", ", errors);
+    }
+}
