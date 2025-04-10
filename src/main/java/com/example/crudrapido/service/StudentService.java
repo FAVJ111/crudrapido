@@ -23,14 +23,6 @@ public class StudentService {
     @Autowired
     ParametrizacionService parametrizacionService;
 
-    // Validación personalizada para el email
-    public void validateEmail(String email) {
-        // Expresión regular para el formato de correo
-        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
-        if (!email.matches(emailRegex)) {
-           throw new InvalidEmailFormatException("Invalid email format: " + email);
-        }
-    }
 
     private void validateName(String name, String fieldName) {
         if (name == null || name.trim().isEmpty()) {
@@ -47,8 +39,6 @@ public class StudentService {
     }
 
     public void saveOrUpdate(Student student) {
-        // Llamada a la validación del correo electrónico
-        validateEmail(student.getEmail());
 
         // Validación del nombre y apellido
         validateName(student.getFirstName(), "First name");
