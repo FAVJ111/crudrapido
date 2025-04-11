@@ -1,13 +1,14 @@
-package com.example.crudrapido.config;
-
-import com.example.crudrapido.config.JwtService;
-import com.example.crudrapido.config.LoginRequest;
+package com.example.crudrapido.controller;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.crudrapido.config.AuthResponse;
+import com.example.crudrapido.config.LoginRequest;
+import com.example.crudrapido.config.RegisterRequest;
+import com.example.crudrapido.service.AuthService;
 
 @RestController
 @RequestMapping("/auth")

@@ -1,4 +1,4 @@
-package com.example.crudrapido.config;
+package com.example.crudrapido.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;

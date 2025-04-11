@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,6 @@ import com.example.crudrapido.entity.Student;
 import com.example.crudrapido.exception.StudentAlreadyExistsException;
 import com.example.crudrapido.exception.StudentNotFoundException;
 import com.example.crudrapido.exception.CustomValidationException;
-import com.example.crudrapido.exception.EmailAlreadyExistsException;
 import com.example.crudrapido.exception.ErrorResponse;
 import com.example.crudrapido.service.StudentService;
 
