@@ -7,9 +7,11 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@NoArgsConstructor
 @Table(name = "tbl_student")
 public class Student {
     @Id
@@ -30,5 +32,12 @@ public class Student {
     @NotBlank(message = "Email is required")
     @Column(name = "email_address", unique = true, nullable = false)
     private String email;
+
+
+    public Student(String firstName, String lastName, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
 
 }

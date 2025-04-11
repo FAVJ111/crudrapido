@@ -42,7 +42,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .sessionManagement(session -> session
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            // ✅ Aquí registras los manejadores de errores personalizados
+            // manejadores de errores personalizados
             .exceptionHandling(exception -> exception
                     .authenticationEntryPoint(customAuthenticationEntryPoint) // 401
                     .accessDeniedHandler(customAccessDeniedHandler)           // 403
