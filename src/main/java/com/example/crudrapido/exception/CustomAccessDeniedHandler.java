@@ -1,4 +1,4 @@
-package com.example.crudrapido.config;
+package com.example.crudrapido.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;

@@ -1,20 +1,17 @@
-package com.example.crudrapido.config;
+package com.example.crudrapido.service;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import com.example.crudrapido.entity.Role;
-import com.example.crudrapido.entity.Student;
-import com.example.crudrapido.entity.User;
-import com.example.crudrapido.repository.StudentRepository;
-import com.example.crudrapido.repository.UserRepository;
+import com.example.crudrapido.config.AuthResponse;
 import com.example.crudrapido.config.LoginRequest;
-import com.example.crudrapido.dto.UsuarioApiResponse;
-
+import com.example.crudrapido.config.RegisterRequest;
+import com.example.crudrapido.config.SyncState;
+import com.example.crudrapido.entity.Role;
+import com.example.crudrapido.entity.User;
+import com.example.crudrapido.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
