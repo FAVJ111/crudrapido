@@ -65,6 +65,11 @@ public class StudentService {
         studentRepository.save(student);
     }
 
+    public List<Student> getStudentsByCourseName(String courseName) {
+        return studentRepository.findByCourse_NameIgnoreCase(courseName);
+    }
+    
+
     public void delete(Long id) {
         studentRepository.deleteById(id);
         ;

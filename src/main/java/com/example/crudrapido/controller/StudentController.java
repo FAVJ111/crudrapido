@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-
-
 import com.example.crudrapido.entity.Student;
 import com.example.crudrapido.exception.StudentAlreadyExistsException;
 import com.example.crudrapido.exception.StudentNotFoundException;
@@ -56,45 +54,43 @@ public class StudentController {
                 .orElseThrow(() -> new StudentNotFoundException("Student with id " + studentId + " not found"));
     }
 
-@Operation(summary = "Registrar un nuevo estudiante", description = "Crea un nuevo estudiante con nombre, apellido y correo electrónico")
-@PreAuthorize("hasRole('ADMIN')")
-@PostMapping
-public ResponseEntity<?> createStudent(@RequestBody @Valid Student student, BindingResult bindingResult) {
-    if (bindingResult.hasErrors()) {
-        // Construir el mapa de errores con los campos y los mensajes
-        Map<String, String> errors = new HashMap<>();
-        bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+    @Operation(summary = "Registrar un nuevo estudiante", description = "Crea un nuevo estudiante con nombre, apellido y correo electrónico")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    public ResponseEntity<?> createStudent(@RequestBody @Valid Student student, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            // Construir el mapa de errores con los campos y los mensajes
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        // Retornar los errores en formato estructurado
-        ErrorResponse errorResponse = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                "Validation error",
-                errors
-        );
+            // Retornar los errores en formato estructurado
+            ErrorResponse errorResponse = new ErrorResponse(
+                    LocalDateTime.now(),
+                    HttpStatus.BAD_REQUEST.value(),
+                    "Bad Request",
+                    "Validation error",
+                    errors);
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        // Verificar si el estudiante ya existe por correo electrónico
+        if (studentService.existsByEmail(student.getEmail())) {
+            throw new StudentAlreadyExistsException("Student with email " + student.getEmail() + " already exists");
+        }
+
+        // Guardar o actualizar el estudiante
+        studentService.saveOrUpdate(student);
+
+        return new ResponseEntity<>("Student created successfully", HttpStatus.CREATED);
     }
 
-    // Verificar si el estudiante ya existe por correo electrónico
-    if (studentService.existsByEmail(student.getEmail())) {
-        throw new StudentAlreadyExistsException("Student with email " + student.getEmail() + " already exists");
-    }
-
-    // Guardar o actualizar el estudiante
-    studentService.saveOrUpdate(student);
-
-    return new ResponseEntity<>("Student created successfully", HttpStatus.CREATED);
-}
-
-
-   @Operation(summary = "Actualizar un estudiante", description = "Actualiza los datos de un estudiante existente por su ID")
-   @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Actualizar un estudiante", description = "Actualiza los datos de un estudiante existente por su ID")
+    @PreAuthorize("hasRole('ADMIN')")
     // Actualizar estudiante
     @PutMapping("/{studentId}")
     public ResponseEntity<String> updateStudent(@PathVariable("studentId") Long studentId,
-                                                @RequestBody @Valid Student student, BindingResult bindingResult) {
+            @RequestBody @Valid Student student, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getAllErrors().stream()
                     .map(error -> error.getDefaultMessage())
@@ -104,11 +100,10 @@ public ResponseEntity<?> createStudent(@RequestBody @Valid Student student, Bind
         if (!studentService.exists(studentId)) {
             throw new StudentNotFoundException("Student with id " + studentId + " not found");
         }
-        student.setStudentId(studentId);  // Asegurarse de que se actualice el id del estudiante
+        student.setStudentId(studentId); // Asegurarse de que se actualice el id del estudiante
         studentService.saveOrUpdate(student);
         return new ResponseEntity<>("Student updated successfully", HttpStatus.OK);
     }
-
 
     @Operation(summary = "Eliminar un estudiante", description = "Elimina un estudiante usando su ID")
     @PreAuthorize("hasRole('ADMIN')")
@@ -119,5 +114,18 @@ public ResponseEntity<?> createStudent(@RequestBody @Valid Student student, Bind
         }
         studentService.delete(studentId);
         return "Estudiante eliminado con éxito"; // Mensaje de confirmación
+    }
+
+    @Operation(summary = "Obtener estudiantes por curso", description = "Lista los estudiantes inscritos en un curso específico")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/curso/{nombreCurso}")
+    public ResponseEntity<List<Student>> getStudentsByCourse(@PathVariable String nombreCurso) {
+        List<Student> estudiantes = studentService.getStudentsByCourseName(nombreCurso);
+
+        if (estudiantes.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        return new ResponseEntity<>(estudiantes, HttpStatus.OK);
     }
 }

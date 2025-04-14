@@ -33,6 +33,10 @@ public class Student {
     @Column(name = "email_address", unique = true, nullable = false)
     private String email;
 
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private Course course;
+
 
     public Student(String firstName, String lastName, String email) {
         this.firstName = firstName;
