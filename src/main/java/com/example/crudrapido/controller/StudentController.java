@@ -2,8 +2,11 @@ package com.example.crudrapido.controller;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,16 +22,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.MediaType;
 
+import com.example.crudrapido.dto.StudentRequestDTO;
+import com.example.crudrapido.entity.Activity;
+import com.example.crudrapido.entity.Course;
 import com.example.crudrapido.entity.Student;
 import com.example.crudrapido.exception.StudentAlreadyExistsException;
 import com.example.crudrapido.exception.StudentNotFoundException;
+import com.example.crudrapido.repository.ActivityRepository;
+import com.example.crudrapido.repository.CourseRepository;
+import com.example.crudrapido.repository.StudentRepository;
 import com.example.crudrapido.exception.CustomValidationException;
 import com.example.crudrapido.exception.ErrorResponse;
 import com.example.crudrapido.service.StudentService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @Tag(name = "Estudiantes", description = "API para la gestión de estudiantes")
@@ -39,11 +50,22 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
-    @Operation(summary = "Obtener todos los estudiantes", description = "Retorna una lista de todos los estudiantes registrados")
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
+    private ActivityRepository activityRepository;
+
+    // Obtener todos los estudiantes con sus actividades
+    @Operation(summary = "Obtener todos los estudiantes con actividades")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public List<Student> getAll() {
-        return studentService.getAllStudents();
+    public ResponseEntity<List<Student>> getAllStudents() {
+        List<Student> students = studentService.getAllStudentsWithRandomActivities();
+        return ResponseEntity.ok(students);
     }
 
     @Operation(summary = "Obtener un estudiante por ID", description = "Busca un estudiante usando su ID")
@@ -57,32 +79,30 @@ public class StudentController {
     @Operation(summary = "Registrar un nuevo estudiante", description = "Crea un nuevo estudiante con nombre, apellido y correo electrónico")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<?> createStudent(@RequestBody @Valid Student student, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            // Construir el mapa de errores con los campos y los mensajes
-            Map<String, String> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-
-            // Retornar los errores en formato estructurado
-            ErrorResponse errorResponse = new ErrorResponse(
-                    LocalDateTime.now(),
-                    HttpStatus.BAD_REQUEST.value(),
-                    "Bad Request",
-                    "Validation error",
-                    errors);
-
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> createStudent(@RequestBody StudentRequestDTO dto) {
+        // Validar que exista el curso
+        Optional<Course> optionalCourse = courseRepository.findById(dto.getCourseId());
+        if (optionalCourse.isEmpty()) {
+            return ResponseEntity.badRequest().body("Course not found with ID: " + dto.getCourseId());
         }
-
-        // Verificar si el estudiante ya existe por correo electrónico
-        if (studentService.existsByEmail(student.getEmail())) {
-            throw new StudentAlreadyExistsException("Student with email " + student.getEmail() + " already exists");
+    
+        // Crear estudiante
+        Student student = new Student();
+        student.setFirstName(dto.getFirstName());
+        student.setLastName(dto.getLastName());
+        student.setEmail(dto.getEmail());
+        student.setCourse(optionalCourse.get());
+    
+        // Buscar las actividades por ID y asociarlas
+        Set<Activity> activities = new HashSet<>();
+        if (dto.getActivityIds() != null && !dto.getActivityIds().isEmpty()) {
+            activities = new HashSet<>(activityRepository.findAllById(dto.getActivityIds()));
         }
-
-        // Guardar o actualizar el estudiante
-        studentService.saveOrUpdate(student);
-
-        return new ResponseEntity<>("Student created successfully", HttpStatus.CREATED);
+        student.setActivities(activities);
+    
+        // Guardar el estudiante
+        Student savedStudent = studentRepository.save(student);
+        return ResponseEntity.ok(savedStudent);
     }
 
     @Operation(summary = "Actualizar un estudiante", description = "Actualiza los datos de un estudiante existente por su ID")
@@ -119,6 +139,7 @@ public class StudentController {
     @Operation(summary = "Obtener estudiantes por curso", description = "Lista los estudiantes inscritos en un curso específico")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/curso/{nombreCurso}")
+    @Transactional
     public ResponseEntity<List<Student>> getStudentsByCourse(@PathVariable String nombreCurso) {
         List<Student> estudiantes = studentService.getStudentsByCourseName(nombreCurso);
 

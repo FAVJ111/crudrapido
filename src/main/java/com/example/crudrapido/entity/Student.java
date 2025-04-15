@@ -1,6 +1,11 @@
 package com.example.crudrapido.entity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hibernate.annotations.processing.Pattern;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -36,6 +41,16 @@ public class Student {
     @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "student_activity",
+        joinColumns = @JoinColumn(name = "student_id"),
+        inverseJoinColumns = @JoinColumn(name = "activity_id")
+    )
+    @JsonManagedReference("student-activities")
+    //@JsonIgnore
+    private Set<Activity> activities = new HashSet<>();
 
 
     public Student(String firstName, String lastName, String email) {
